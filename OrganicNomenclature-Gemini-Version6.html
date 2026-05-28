@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Organic Nomenclature - Introductory Practice</title>
+    <style>
+        :root {
+            --bg-color: #05050a;
+            --panel-bg: #11111a;
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --neon-green: #00ff33;
+            --neon-yellow: #ffff00;
+            --neon-red: #ff3333;
+            --text-main: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 15px var(--neon-cyan);
+            background-color: var(--panel-bg);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px var(--neon-cyan);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .top-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--text-main);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cyan { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+        .btn-yellow { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+        .btn-red { border-color: var(--neon-red); color: var(--neon-red); }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .round-display { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+        .score-display { color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); }
+        .time-display { color: var(--neon-magenta); text-shadow: 0 0 8px var(--neon-magenta); }
+
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-grow: 1;
+        }
+
+        .screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .screen.active { display: flex; }
+
+        .molecule-display {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px var(--neon-green);
+            border-radius: 10px;
+            padding: 20px 15px;
+            text-align: center;
+            font-size: clamp(1.2rem, 3.5vw, 2.5rem); 
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            width: 100%;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: nowrap; 
+            overflow-x: auto;
+        }
+        
+        .molecule-display::-webkit-scrollbar { height: 8px; }
+        .molecule-display::-webkit-scrollbar-track { background: rgba(0, 255, 51, 0.1); border-radius: 4px; }
+        .molecule-display::-webkit-scrollbar-thumb { background: var(--neon-green); border-radius: 4px; }
+
+        .molecule-display sub { 
+            font-size: 0.45em; 
+            vertical-align: baseline; 
+            position: relative; 
+            top: 0.5em;
+            color: #cccccc;
+        }
+
+        #feedback-box {
+            font-size: 1.2rem;
+            min-height: 30px;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .prompt-title {
+            color: var(--neon-cyan);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .btn-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--neon-cyan);
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: capitalize;
+            min-width: 80px;
+        }
+
+        .btn-func { border-color: var(--neon-magenta); }
+        .btn-sub { border-color: var(--neon-yellow); }
+        .btn-frag { border-color: var(--neon-green); font-size: 1.3rem; font-family: monospace; text-transform: none;}
+        .btn-action { border-color: #fff; background: rgba(255,255,255,0.1); }
+
+        @media (hover: hover) {
+            .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); }
+            .btn-func:hover { background: var(--neon-magenta); box-shadow: 0 0 10px var(--neon-magenta); }
+            .btn-sub:hover { background: var(--neon-yellow); box-shadow: 0 0 10px var(--neon-yellow); }
+            .btn-frag:hover { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+            .big-btn:hover { background: var(--neon-green); color: #000; }
+            .top-btn.btn-cyan:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); }
+            .top-btn.btn-yellow:hover { background: var(--neon-yellow); color: #000; box-shadow: 0 0 10px var(--neon-yellow); }
+            .top-btn.btn-red:hover { background: var(--neon-red); color: #000; box-shadow: 0 0 10px var(--neon-red); }
+        }
+
+        .btn:active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); transition: none; }
+        .btn-func:active { background: var(--neon-magenta); box-shadow: 0 0 10px var(--neon-magenta); transition: none; }
+        .btn-sub:active { background: var(--neon-yellow); box-shadow: 0 0 10px var(--neon-yellow); transition: none; }
+        .btn-frag:active { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); transition: none; }
+
+        .builder-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #built-name-display {
+            width: 100%;
+            background: #000;
+            border: 2px dashed var(--neon-cyan);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-family: monospace;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 5px var(--neon-yellow);
+            letter-spacing: 2px;
+        }
+
+        .builder-controls { display: flex; gap: 15px; margin-top: 10px; }
+
+        .big-btn {
+            font-size: 1.3rem;
+            padding: 15px 30px;
+            border: 2px solid var(--neon-green);
+            background: transparent;
+            color: var(--neon-green);
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--neon-green);
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.2s ease;
+        }
+        
+        .big-btn:active { background: var(--neon-green); color: #000; transition: none; }
+        .big-btn.alt { border-color: var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); }
+        .big-btn.alt:hover { background: var(--neon-cyan); color: #000; }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 650px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 25px;
+            box-shadow: 0 0 25px var(--neon-cyan);
+            color: #ddd;
+            line-height: 1.6;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--neon-magenta);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 { color: var(--neon-magenta); text-shadow: 0 0 5px var(--neon-magenta); }
+
+        .close-btn {
+            background: transparent; border: none; color: var(--neon-red);
+            font-size: 2rem; cursor: pointer; text-shadow: 0 0 5px var(--neon-red);
+            line-height: 1;
+        }
+
+        .modal-content h3 { color: var(--neon-yellow); margin-top: 20px; margin-bottom: 8px; }
+        .modal-content ul { margin-left: 20px; margin-bottom: 15px; }
+        .modal-content li { margin-bottom: 5px; }
+        .modal-content code { color: var(--neon-green); font-size: 1.1em; }
+        .modal-content a { color: var(--neon-cyan); font-weight: bold; text-decoration: none; }
+        
+        .example-box {
+            background: rgba(255,255,255,0.05);
+            border-left: 4px solid var(--neon-green);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .example-molecule {
+            font-family: monospace;
+            font-size: 1.4rem;
+            color: var(--neon-cyan);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .btn { padding: 10px 15px; font-size: 1rem; }
+            .molecule-display { font-size: 1.5rem; padding: 15px; }
+            #built-name-display { font-size: 1.4rem; }
+            header { flex-direction: column; align-items: flex-start; }
+            .stats { width: 100%; justify-content: space-between; margin-left: 0; margin-top: 10px;}
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Organic Nomenclature - Introductory Practice</h1>
+        <div class="header-controls">
+            <button class="top-btn btn-cyan" onclick="toggleModal('rules-modal', true)">IUPAC Rules</button>
+            <button class="top-btn btn-yellow" onclick="toggleModal('examples-modal', true)">Worked Examples</button>
+            <button class="top-btn btn-red" onclick="exitGame()">Exit</button>
+        </div>
+        <div class="stats">
+            <div class="round-display">Round: <span id="round-counter">-</span></div>
+            <div class="score-display">Score: <span id="score">0</span></div>
+            <div class="time-display">Time: <span id="timer">0</span>s</div>
+        </div>
+    </header>
+
+    <div id="rules-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>IUPAC Nomenclature Guide</h2>
+                <button class="close-btn" onclick="toggleModal('rules-modal', false)">&times;</button>
+            </div>
+            
+            <h3>Step 1: Identify the Parent Chain</h3>
+            <p>Find the longest continuous carbon chain. The number of carbons dictates the root name:</p>
+            <ul>
+                <li>1 = <code>meth-</code>, 2 = <code>eth-</code>, 3 = <code>prop-</code>, 4 = <code>but-</code>, 5 = <code>pent-</code></li>
+                <li>6 = <code>hex-</code>, 7 = <code>hept-</code>, 8 = <code>oct-</code>, 9 = <code>non-</code>, 10 = <code>dec-</code></li>
+            </ul>
+
+            <h3>Step 2: Identify the Functional Group (Suffix)</h3>
+            <p>The highest priority group determines the ending of the name:</p>
+            <ul>
+                <li><strong>Alkanes:</strong> Single bonds only. Suffix: <code>-ane</code></li>
+                <li><strong>Alkenes:</strong> Carbon-carbon double bond. Suffix: <code>-ene</code></li>
+                <li><strong>Alkynes:</strong> Carbon-carbon triple bond. Suffix: <code>-yne</code></li>
+                <li><strong>Alcohols:</strong> Contains -OH. Suffix: <code>-ol</code></li>
+                <li><strong>Aldehydes:</strong> Contains -CHO at the end. Suffix: <code>-al</code></li>
+                <li><strong>Ketones:</strong> Contains C=O in the middle. Suffix: <code>-one</code></li>
+                <li><strong>Carboxylic Acids:</strong> Contains -COOH at the end. Suffix: <code>-oic acid</code></li>
+            </ul>
+
+            <h3>Step 3: Numbering & Substituents (Prefixes)</h3>
+            <p>Number the carbon chain starting from the end that gives the primary functional group the lowest number. Assign numbers to secondary substituents (like <code>chloro</code>, <code>methyl</code>) and list them alphabetically at the start.</p>
+            <ul>
+                <li><strong>Multiple Identical Substituents:</strong> If the exact same substituent appears more than once, use a Greek prefix (<code>di-</code> for 2, <code>tri-</code> for 3, <code>tetra-</code> for 4).</li>
+                <li><strong>Punctuation Rules:</strong> Separate numbers from each other using a comma (e.g., <code>2,3</code>) and separate numbers from letters using a hyphen (e.g., <code>2-chloro</code> or <code>2,2-dimethyl</code>).</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="examples-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Worked Examples</h2>
+                <button class="close-btn" onclick="toggleModal('examples-modal', false)">&times;</button>
+            </div>
+            
+            <p>Review the logic below to understand how to correctly identify and build IUPAC names step-by-step.</p>
+            
+            <div class="example-box">
+                <div class="example-molecule">CH<sub>3</sub>-CH(OH)-CH<sub>3</sub></div>
+                <h3>Example 1: Simple Molecule</h3>
+                <ul>
+                    <li><strong>Step 1A (Parent Chain):</strong> Count the longest continuous carbon chain. There are 3 carbons. The parent prefix is <strong>prop</strong>.</li>
+                    <li><strong>Step 1B (Functional Group):</strong> Look for the highest priority group. There is an -OH group. This makes it an <strong>alcohol</strong>.</li>
+                    <li><strong>Step 1C (Substituents):</strong> Are there any halogens or extra branches attached? No. Select <strong>none</strong>.</li>
+                    <li><strong>Step 2 (Building the Name):</strong> Number the chain to give the -OH group the lowest number (carbon 2).<br>
+                    Assemble: <code>prop</code> + <code>an</code> + <code>-</code> + <code>2</code> + <code>-</code> + <code>ol</code> &rarr; <strong>propan-2-ol</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="example-box" style="border-color: var(--neon-magenta);">
+                <div class="example-molecule">CH<sub>3</sub>-CO-CH<sub>2</sub>-CH(Cl)-CH<sub>2</sub>-CH<sub>2</sub>-CH<sub>3</sub></div>
+                <h3>Example 2: Complex Molecule</h3>
+                <ul>
+                    <li><strong>Step 1A (Parent Chain):</strong> The longest continuous carbon chain has 7 carbons. The parent prefix is <strong>hept</strong>.</li>
+                    <li><strong>Step 1B (Functional Group):</strong> The molecule contains a carbonyl group (C=O) in the middle of the chain. This makes it a <strong>ketone</strong>.</li>
+                    <li><strong>Step 1C (Substituents):</strong> There is a chlorine atom attached. The substituent is <strong>chloro</strong>.</li>
+                    <li><strong>Step 2 (Building the Name):</strong> Number from left to right to put the ketone on carbon 2 and the chlorine on carbon 4.<br>
+                    Assemble: <code>4</code> + <code>-</code> + <code>chloro</code> + <code>hept</code> + <code>an</code> + <code>-</code> + <code>2</code> + <code>-</code> + <code>one</code> &rarr; <strong>4-chloroheptan-2-one</strong>.</li>
+                </ul>
+            </div>
+
+            <div class="example-box" style="border-color: var(--neon-yellow);">
+                <div class="example-molecule">CH<sub>3</sub>-CH(Cl)-CH(Cl)-CH<sub>3</sub></div>
+                <h3>Example 3: Multiple Identical Substituents</h3>
+                <ul>
+                    <li><strong>Step 1A (Parent Chain):</strong> 4 carbons in a row. The parent prefix is <strong>but</strong>.</li>
+                    <li><strong>Step 1B (Functional Group):</strong> Only single bonds between carbons. It is an <strong>alkane</strong>.</li>
+                    <li><strong>Step 1C (Substituents):</strong> You see chlorine attached. Identify the substituent as simply <strong>chloro</strong>.</li>
+                    <li><strong>Step 2 (Building the Name):</strong> There are TWO chlorines, located on carbons 2 and 3. We must combine the numbers with a comma and use the prefix "di".<br>
+                    Assemble: <code>2</code> + <code>,</code> + <code>3</code> + <code>-</code> + <code>di</code> + <code>chloro</code> + <code>but</code> + <code>an</code> + <code>e</code> &rarr; <strong>2,3-dichlorobutane</strong>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        
+        <div id="screen-start" class="screen active">
+            <div class="molecule-display" style="border-color: var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan);">
+                Simulator Online
+            </div>
+            <p style="text-align: center; margin-top: 20px; font-size: 1.1rem; line-height: 1.6;">
+                Master IUPAC naming conventions for chains up to 10 carbons.<br><br>
+                <strong>The Challenge:</strong> Name exactly 10 compounds per session.<br>
+                <strong>Step 1:</strong> Identify the parent chain, functional group, and substituents.<br>
+                <strong>Step 2:</strong> Construct the exact IUPAC name using fragments.<br><br>
+                Work fast and accurately to maximize your score!
+            </p>
+            <button class="big-btn" onclick="startGame()">Begin 10-Round Sequence</button>
+        </div>
+
+        <div id="screen-game" class="screen">
+            <div id="molecule-view" class="molecule-display"></div>
+
+            <div id="step-parent" class="step-container" style="display: none; width: 100%;">
+                <div class="prompt-title">Step 1A: Select Parent Carbon Chain</div>
+                <div class="btn-grid" id="grid-parent"></div>
+            </div>
+
+            <div id="step-func" class="step-container" style="display: none; width: 100%;">
+                <div class="prompt-title">Step 1B: Select Primary Functional Group</div>
+                <div class="btn-grid" id="grid-func"></div>
+            </div>
+
+            <div id="step-sub" class="step-container" style="display: none; width: 100%;">
+                <div class="prompt-title">Step 1C: Select Substituents Present</div>
+                <div class="btn-grid" id="grid-sub"></div>
+            </div>
+
+            <div id="step-build" class="step-container builder-area" style="display: none;">
+                <div class="prompt-title">Step 2: Construct IUPAC Name</div>
+                <div id="built-name-display"></div>
+                <div class="btn-grid" id="grid-fragments"></div>
+                <div class="builder-controls">
+                    <button class="btn btn-action" onclick="backspaceName()">⌫ Backspace</button>
+                    <button class="btn btn-action" onclick="clearName()">↻ Clear</button>
+                    <button class="btn btn-action" style="border-color: var(--neon-green); color: var(--neon-green);" onclick="submitBuiltName()">✓ Submit</button>
+                </div>
+            </div>
+
+            <div id="feedback-box"></div>
+        </div>
+
+        <div id="screen-end" class="screen">
+            <div class="molecule-display" style="border-color: var(--neon-magenta); box-shadow: 0 0 20px var(--neon-magenta);">
+                Sequence Complete
+            </div>
+            <p style="text-align: center; margin-top: 20px; font-size: 1.5rem;">
+                Final Score: <span id="final-score" style="color: var(--neon-yellow);">0</span>
+            </p>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <button class="big-btn" onclick="startGame()">Play Next 10 Rounds</button>
+                <button class="big-btn alt" onclick="showStartScreen()">Main Menu</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Modal logic
+        function toggleModal(modalId, show) {
+            const overlay = document.getElementById(modalId);
+            if (show) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        // Expanded Database of Compounds
+        const compoundDB = [
+            // Meth-
+            { html: "CH<sub>4</sub>", parent: "meth", func: "alkane", subs: "none", name: "methane", frags: ["meth", "eth", "an", "en", "e", "ol", "-"] },
+            { html: "CH<sub>3</sub>-OH", parent: "meth", func: "alcohol", subs: "none", name: "methanol", frags: ["meth", "eth", "an", "e", "ol", "al", "-"] },
+            { html: "HCHO", parent: "meth", func: "aldehyde", subs: "none", name: "methanal", frags: ["meth", "eth", "an", "e", "ol", "al", "-"] },
+            { html: "HCOOH", parent: "meth", func: "carboxylic acid", subs: "none", name: "methanoic acid", frags: ["meth", "an", "e", "oic acid", "al"] },
+            { html: "CH<sub>3</sub>-Cl", parent: "meth", func: "alkane", subs: "chloro", name: "chloromethane", frags: ["meth", "chloro", "bromo", "an", "e"] },
+            
+            // Eth-
+            { html: "CH<sub>3</sub>-CH<sub>3</sub>", parent: "eth", func: "alkane", subs: "none", name: "ethane", frags: ["meth", "eth", "prop", "an", "e", "-"] },
+            { html: "CH<sub>2</sub>=CH<sub>2</sub>", parent: "eth", func: "alkene", subs: "none", name: "ethene", frags: ["eth", "prop", "an", "en", "e", "-"] },
+            { html: "CH≡CH", parent: "eth", func: "alkyne", subs: "none", name: "ethyne", frags: ["eth", "prop", "an", "en", "yn", "e", "-"] },
+            { html: "CH<sub>3</sub>-CHO", parent: "eth", func: "aldehyde", subs: "none", name: "ethanal", frags: ["eth", "prop", "an", "en", "ol", "al", "e"] },
+            { html: "CH<sub>3</sub>-COOH", parent: "eth", func: "carboxylic acid", subs: "none", name: "ethanoic acid", frags: ["eth", "prop", "an", "e", "oic acid"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-F", parent: "eth", func: "alkane", subs: "fluoro", name: "fluoroethane", frags: ["eth", "prop", "fluoro", "chloro", "an", "e"] },
+            { html: "CH<sub>2</sub>(Br)-COOH", parent: "eth", func: "carboxylic acid", subs: "bromo", name: "2-bromoethanoic acid", frags: ["eth", "bromo", "chloro", "an", "e", "-", "2", "oic acid"] },
+            // Multi-substituent addition:
+            { html: "CH<sub>2</sub>(Cl)-CH<sub>2</sub>(Cl)", parent: "eth", func: "alkane", subs: "chloro", name: "1,2-dichloroethane", frags: ["eth", "chloro", "bromo", "an", "e", "di", "1", "2", ",", "-"] },
+            
+            // Prop-
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH<sub>3</sub>", parent: "prop", func: "alkane", subs: "none", name: "propane", frags: ["prop", "but", "an", "en", "e", "-"] },
+            { html: "CH<sub>3</sub>-CH=CH<sub>2</sub>", parent: "prop", func: "alkene", subs: "none", name: "propene", frags: ["prop", "but", "an", "en", "e", "-"] },
+            { html: "CH<sub>3</sub>-CH(OH)-CH<sub>3</sub>", parent: "prop", func: "alcohol", subs: "none", name: "propan-2-ol", frags: ["prop", "but", "an", "en", "-", "1", "2", "ol"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH<sub>2</sub>-OH", parent: "prop", func: "alcohol", subs: "none", name: "propan-1-ol", frags: ["prop", "but", "an", "-", "1", "2", "ol"] },
+            { html: "CH<sub>3</sub>-CO-CH<sub>3</sub>", parent: "prop", func: "ketone", subs: "none", name: "propanone", frags: ["prop", "but", "an", "e", "one", "al"] },
+            { html: "CH<sub>3</sub>-CH(Cl)-CH<sub>3</sub>", parent: "prop", func: "alkane", subs: "chloro", name: "2-chloropropane", frags: ["prop", "chloro", "bromo", "an", "e", "-", "1", "2"] },
+            { html: "CH<sub>2</sub>(F)-CH<sub>2</sub>-COOH", parent: "prop", func: "carboxylic acid", subs: "fluoro", name: "3-fluoropropanoic acid", frags: ["prop", "but", "fluoro", "an", "e", "-", "2", "3", "oic acid"] },
+            // Multi-substituent addition:
+            { html: "CH<sub>3</sub>-C(CH<sub>3</sub>)<sub>2</sub>-CH<sub>3</sub>", parent: "prop", func: "alkane", subs: "methyl", name: "2,2-dimethylpropane", frags: ["prop", "but", "meth", "yl", "an", "e", "di", "2", "3", ",", "-"] },
+
+            // But-
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>2</sub>-CH<sub>3</sub>", parent: "but", func: "alkane", subs: "none", name: "butane", frags: ["prop", "but", "pent", "an", "e"] },
+            { html: "CH<sub>3</sub>-CH=CH-CH<sub>3</sub>", parent: "but", func: "alkene", subs: "none", name: "but-2-ene", frags: ["but", "pent", "an", "en", "e", "-", "1", "2"] },
+            { html: "CH<sub>2</sub>=CH-CH<sub>2</sub>-CH<sub>3</sub>", parent: "but", func: "alkene", subs: "none", name: "but-1-ene", frags: ["but", "pent", "an", "en", "e", "-", "1", "2"] },
+            { html: "CH<sub>3</sub>-CH(OH)-CH<sub>2</sub>-CH<sub>3</sub>", parent: "but", func: "alcohol", subs: "none", name: "butan-2-ol", frags: ["but", "pent", "an", "en", "-", "1", "2", "ol"] },
+            { html: "CH<sub>3</sub>-CH(CH<sub>3</sub>)-CH<sub>3</sub>", parent: "prop", func: "alkane", subs: "methyl", name: "2-methylpropane", frags: ["prop", "but", "meth", "an", "e", "yl", "-", "2"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CO-CH<sub>3</sub>", parent: "but", func: "ketone", subs: "none", name: "butanone", frags: ["but", "pent", "an", "e", "one", "-", "2"] },
+            { html: "CH<sub>2</sub>=CH-CH(CH<sub>3</sub>)-CH<sub>3</sub>", parent: "but", func: "alkene", subs: "methyl", name: "3-methylbut-1-ene", frags: ["but", "pent", "meth", "yl", "an", "en", "e", "-", "1", "2", "3"] },
+            { html: "CH<sub>3</sub>-CH(Cl)-CH<sub>2</sub>-CHO", parent: "but", func: "aldehyde", subs: "chloro", name: "3-chlorobutanal", frags: ["but", "pent", "chloro", "bromo", "an", "e", "al", "-", "2", "3"] },
+            // Multi-substituent addition:
+            { html: "CH<sub>3</sub>-CH(Cl)-CH(Cl)-CH<sub>3</sub>", parent: "but", func: "alkane", subs: "chloro", name: "2,3-dichlorobutane", frags: ["but", "pent", "chloro", "an", "e", "di", "2", "3", ",", "-"] },
+
+            // Pent-
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>3</sub>-CH<sub>3</sub>", parent: "pent", func: "alkane", subs: "none", name: "pentane", frags: ["but", "pent", "hex", "an", "e"] },
+            { html: "CH<sub>3</sub>-CH=CH-CH<sub>2</sub>-CH<sub>3</sub>", parent: "pent", func: "alkene", subs: "none", name: "pent-2-ene", frags: ["pent", "hex", "an", "en", "e", "-", "1", "2", "3"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH(OH)-CH<sub>2</sub>-CH<sub>3</sub>", parent: "pent", func: "alcohol", subs: "none", name: "pentan-3-ol", frags: ["pent", "hex", "an", "-", "2", "3", "ol"] },
+            { html: "CH<sub>3</sub>-CH(CH<sub>3</sub>)-CH<sub>2</sub>-CH<sub>2</sub>-CH<sub>3</sub>", parent: "pent", func: "alkane", subs: "methyl", name: "2-methylpentane", frags: ["pent", "hex", "meth", "yl", "an", "e", "-", "2", "3"] },
+            { html: "CH<sub>3</sub>-CO-(CH<sub>2</sub>)<sub>2</sub>-CH<sub>3</sub>", parent: "pent", func: "ketone", subs: "none", name: "pentan-2-one", frags: ["pent", "hex", "an", "-", "1", "2", "3", "one"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CO-CH<sub>2</sub>-CH<sub>3</sub>", parent: "pent", func: "ketone", subs: "none", name: "pentan-3-one", frags: ["pent", "hex", "an", "-", "2", "3", "one"] },
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>3</sub>-COOH", parent: "pent", func: "carboxylic acid", subs: "none", name: "pentanoic acid", frags: ["pent", "hex", "an", "e", "oic acid"] },
+            { html: "CH<sub>3</sub>-CH(Br)-CH<sub>2</sub>-CH(OH)-CH<sub>3</sub>", parent: "pent", func: "alcohol", subs: "bromo", name: "4-bromopentan-2-ol", frags: ["pent", "hex", "bromo", "chloro", "an", "-", "2", "3", "4", "ol"] },
+            { html: "CH<sub>3</sub>-CH(CH<sub>3</sub>)-CH<sub>2</sub>-CH<sub>2</sub>-CHO", parent: "pent", func: "aldehyde", subs: "methyl", name: "4-methylpentanal", frags: ["pent", "hex", "meth", "yl", "an", "e", "al", "-", "3", "4"] },
+            { html: "CH<sub>3</sub>-C≡C-CH(CH<sub>3</sub>)-CH<sub>3</sub>", parent: "pent", func: "alkyne", subs: "methyl", name: "4-methylpent-2-yne", frags: ["pent", "hex", "meth", "yl", "an", "yn", "e", "-", "2", "3", "4"] },
+
+            // Hex-
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>4</sub>-CH<sub>3</sub>", parent: "hex", func: "alkane", subs: "none", name: "hexane", frags: ["pent", "hex", "hept", "an", "e"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH=CH-CH<sub>2</sub>-CH<sub>3</sub>", parent: "hex", func: "alkene", subs: "none", name: "hex-3-ene", frags: ["hex", "hept", "an", "en", "e", "-", "2", "3"] },
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>5</sub>-OH", parent: "hex", func: "alcohol", subs: "none", name: "hexan-1-ol", frags: ["hex", "hept", "an", "-", "1", "2", "ol"] },
+            { html: "CH<sub>3</sub>-CO-(CH<sub>2</sub>)<sub>3</sub>-CH<sub>3</sub>", parent: "hex", func: "ketone", subs: "none", name: "hexan-2-one", frags: ["hex", "hept", "an", "-", "2", "3", "one"] },
+            { html: "CH<sub>3</sub>-CH(Cl)-(CH<sub>2</sub>)<sub>3</sub>-CH<sub>3</sub>", parent: "hex", func: "alkane", subs: "chloro", name: "2-chlorohexane", frags: ["hex", "hept", "chloro", "bromo", "an", "e", "-", "2", "3"] },
+            { html: "CH<sub>3</sub>-CO-CH<sub>2</sub>-CH<sub>2</sub>-CH(F)-CH<sub>3</sub>", parent: "hex", func: "ketone", subs: "fluoro", name: "5-fluorohexan-2-one", frags: ["hex", "hept", "fluoro", "chloro", "an", "-", "2", "4", "5", "one"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH(CH<sub>3</sub>)-CH<sub>2</sub>-CH<sub>2</sub>-CH<sub>3</sub>", parent: "hex", func: "alkane", subs: "methyl", name: "3-methylhexane", frags: ["hex", "hept", "meth", "yl", "an", "e", "-", "2", "3", "4"] },
+
+            // Hept-
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>5</sub>-CH<sub>3</sub>", parent: "hept", func: "alkane", subs: "none", name: "heptane", frags: ["hex", "hept", "oct", "an", "e"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-C≡C-CH<sub>2</sub>-CH<sub>2</sub>-CH<sub>3</sub>", parent: "hept", func: "alkyne", subs: "none", name: "hept-3-yne", frags: ["hept", "oct", "an", "en", "yn", "e", "-", "2", "3"] },
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>5</sub>-CHO", parent: "hept", func: "aldehyde", subs: "none", name: "heptanal", frags: ["hept", "oct", "an", "e", "ol", "al"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CO-(CH<sub>2</sub>)<sub>3</sub>-CH<sub>3</sub>", parent: "hept", func: "ketone", subs: "none", name: "heptan-3-one", frags: ["hept", "oct", "an", "-", "2", "3", "one"] },
+            { html: "CH<sub>3</sub>-CH(Br)-(CH<sub>2</sub>)<sub>4</sub>-CH<sub>3</sub>", parent: "hept", func: "alkane", subs: "bromo", name: "2-bromoheptane", frags: ["hept", "oct", "chloro", "bromo", "an", "e", "-", "2", "3"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH(CH<sub>2</sub>CH<sub>3</sub>)-CH<sub>2</sub>-CH<sub>2</sub>-CH<sub>2</sub>-CH<sub>3</sub>", parent: "hept", func: "alkane", subs: "ethyl", name: "3-ethylheptane", frags: ["hept", "oct", "eth", "yl", "an", "e", "-", "3", "4"] },
+            { html: "CH<sub>3</sub>-CH(Cl)-CH<sub>2</sub>-CH<sub>2</sub>-CH<sub>2</sub>-CH(OH)-CH<sub>3</sub>", parent: "hept", func: "alcohol", subs: "chloro", name: "6-chloroheptan-2-ol", frags: ["hept", "oct", "chloro", "bromo", "an", "-", "2", "3", "6", "ol"] },
+
+            // Oct-
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>6</sub>-CH<sub>3</sub>", parent: "oct", func: "alkane", subs: "none", name: "octane", frags: ["hept", "oct", "non", "an", "e"] },
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>3</sub>-CH=CH-CH<sub>2</sub>-CH<sub>3</sub>", parent: "oct", func: "alkene", subs: "none", name: "oct-3-ene", frags: ["oct", "non", "an", "en", "e", "-", "3", "4"] },
+            { html: "CH<sub>3</sub>-CH(OH)-(CH<sub>2</sub>)<sub>5</sub>-CH<sub>3</sub>", parent: "oct", func: "alcohol", subs: "none", name: "octan-2-ol", frags: ["oct", "non", "an", "-", "2", "3", "ol"] },
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>6</sub>-COOH", parent: "oct", func: "carboxylic acid", subs: "none", name: "octanoic acid", frags: ["oct", "non", "an", "e", "oic acid"] },
+            { html: "CH<sub>3</sub>-CH(CH<sub>3</sub>)-(CH<sub>2</sub>)<sub>5</sub>-CH<sub>3</sub>", parent: "oct", func: "alkane", subs: "methyl", name: "2-methyloctane", frags: ["oct", "non", "meth", "yl", "an", "e", "-", "2", "3"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH(F)-CH<sub>2</sub>-CH<sub>2</sub>-CO-CH<sub>2</sub>-CH<sub>3</sub>", parent: "oct", func: "ketone", subs: "fluoro", name: "6-fluorooctan-3-one", frags: ["oct", "non", "fluoro", "chloro", "an", "-", "3", "4", "6", "one"] },
+
+            // Non-
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>7</sub>-CH<sub>3</sub>", parent: "non", func: "alkane", subs: "none", name: "nonane", frags: ["oct", "non", "dec", "an", "e"] },
+            { html: "CH<sub>3</sub>-CH(OH)-(CH<sub>2</sub>)<sub>6</sub>-CH<sub>3</sub>", parent: "non", func: "alcohol", subs: "none", name: "nonan-2-ol", frags: ["non", "dec", "an", "-", "1", "2", "ol"] },
+            { html: "CH<sub>3</sub>-CO-(CH<sub>2</sub>)<sub>6</sub>-CH<sub>3</sub>", parent: "non", func: "ketone", subs: "none", name: "nonan-2-one", frags: ["non", "dec", "an", "-", "1", "2", "one"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH<sub>2</sub>-CO-(CH<sub>2</sub>)<sub>4</sub>-CH<sub>3</sub>", parent: "non", func: "ketone", subs: "none", name: "nonan-4-one", frags: ["non", "dec", "an", "-", "3", "4", "one"] },
+            { html: "CH<sub>2</sub>=CH-CH(CH<sub>3</sub>)-(CH<sub>2</sub>)<sub>5</sub>-CH<sub>3</sub>", parent: "non", func: "alkene", subs: "methyl", name: "3-methylnon-1-ene", frags: ["non", "dec", "meth", "yl", "an", "en", "e", "-", "1", "2", "3"] },
+            { html: "CH<sub>3</sub>-CH(Br)-(CH<sub>2</sub>)<sub>6</sub>-CH<sub>3</sub>", parent: "non", func: "alkane", subs: "bromo", name: "2-bromononane", frags: ["non", "dec", "bromo", "chloro", "an", "e", "-", "2", "3"] },
+
+            // Dec-
+            { html: "CH<sub>3</sub>-(CH<sub>2</sub>)<sub>8</sub>-CH<sub>3</sub>", parent: "dec", func: "alkane", subs: "none", name: "decane", frags: ["non", "dec", "meth", "an", "e"] },
+            { html: "CH<sub>2</sub>=CH-(CH<sub>2</sub>)<sub>7</sub>-CH<sub>3</sub>", parent: "dec", func: "alkene", subs: "none", name: "dec-1-ene", frags: ["dec", "non", "an", "en", "e", "-", "1", "2"] },
+            { html: "CH<sub>2</sub>(OH)-(CH<sub>2</sub>)<sub>8</sub>-CH<sub>3</sub>", parent: "dec", func: "alcohol", subs: "none", name: "decan-1-ol", frags: ["dec", "non", "an", "-", "1", "2", "ol"] },
+            { html: "CH<sub>3</sub>-CH(F)-(CH<sub>2</sub>)<sub>7</sub>-CH<sub>3</sub>", parent: "dec", func: "alkane", subs: "fluoro", name: "2-fluorodecane", frags: ["dec", "non", "fluoro", "chloro", "an", "e", "-", "2", "3"] },
+            { html: "CH<sub>3</sub>-CH<sub>2</sub>-CH(CH<sub>2</sub>CH<sub>3</sub>)-(CH<sub>2</sub>)<sub>6</sub>-CH<sub>3</sub>", parent: "dec", func: "alkane", subs: "ethyl", name: "3-ethyldecane", frags: ["dec", "non", "eth", "yl", "an", "e", "-", "2", "3", "4"] },
+            { html: "CH<sub>3</sub>-CO-CH<sub>2</sub>-CH(Cl)-(CH<sub>2</sub>)<sub>5</sub>-CH<sub>3</sub>", parent: "dec", func: "ketone", subs: "chloro", name: "4-chlorodecan-2-one", frags: ["dec", "non", "chloro", "bromo", "an", "-", "2", "3", "4", "one"] }
+        ];
+
+        // Standard Options
+        const parents = ["meth", "eth", "prop", "but", "pent", "hex", "hept", "oct", "non", "dec"];
+        const funcs = ["alkane", "alkene", "alkyne", "alcohol", "aldehyde", "ketone", "carboxylic acid"];
+        const subs = ["none", "methyl", "ethyl", "chloro", "bromo", "fluoro"];
+
+        // Game State Variables
+        const MAX_ROUNDS = 10;
+        let currentRound = 0;
+        let score = 0;
+        let timeRemaining = 60;
+        let timerInterval;
+        let currentCompound = null;
+        let builtNameStr = "";
+
+        const elScore = document.getElementById('score');
+        const elTimer = document.getElementById('timer');
+        const elRound = document.getElementById('round-counter');
+        const elFeedback = document.getElementById('feedback-box');
+        const elMolecule = document.getElementById('molecule-view');
+        const elBuiltName = document.getElementById('built-name-display');
+
+        const stepParent = document.getElementById('step-parent');
+        const stepFunc = document.getElementById('step-func');
+        const stepSub = document.getElementById('step-sub');
+        const stepBuild = document.getElementById('step-build');
+
+        function showStartScreen() {
+            clearInterval(timerInterval);
+            elRound.innerText = "-";
+            document.getElementById('screen-game').classList.remove('active');
+            document.getElementById('screen-end').classList.remove('active');
+            document.getElementById('screen-start').classList.add('active');
+        }
+
+        function exitGame() {
+            // Confirm exit to prevent accidental clicks
+            if(confirm("Are you sure you want to exit the current game and return to the main menu?")) {
+                showStartScreen();
+            }
+        }
+
+        function startGame() {
+            document.getElementById('screen-start').classList.remove('active');
+            document.getElementById('screen-end').classList.remove('active');
+            document.getElementById('screen-game').classList.add('active');
+            
+            // Shuffle DB for varied gameplay
+            compoundDB.sort(() => Math.random() - 0.5);
+
+            buildGrid('grid-parent', parents, 'btn', checkParent);
+            buildGrid('grid-func', funcs, 'btn btn-func', checkFunc);
+            buildGrid('grid-sub', subs, 'btn btn-sub', checkSub);
+
+            score = 0;
+            currentRound = 0;
+            updateScore(0);
+            loadNextMolecule();
+        }
+
+        function loadNextMolecule() {
+            if (currentRound >= MAX_ROUNDS || currentRound >= compoundDB.length) {
+                endGame();
+                return;
+            }
+
+            currentCompound = compoundDB[currentRound];
+            currentRound++;
+            elRound.innerText = `${currentRound}/${MAX_ROUNDS}`;
+            
+            elMolecule.innerHTML = currentCompound.html;
+            builtNameStr = "";
+            elBuiltName.innerText = "";
+            showFeedback("", "");
+
+            // Calculate Dynamic Time Remaining based on complexity
+            let allocatedTime = 60;
+            const longChains = ["hex", "hept", "oct", "non", "dec"];
+            
+            if (longChains.includes(currentCompound.parent)) allocatedTime += 15;
+            if (currentCompound.subs !== "none") allocatedTime += 15;
+            if (/\d/.test(currentCompound.name)) allocatedTime += 10; // Contains numbers/locants
+
+            clearInterval(timerInterval);
+            timeRemaining = allocatedTime;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                if (timeRemaining <= 0) {
+                    showFeedback("Time Out! Penalty Applied.", "var(--neon-red)");
+                    updateScore(-50);
+                    setTimeout(loadNextMolecule, 1000);
+                }
+            }, 1000);
+
+            showStep(stepParent);
+        }
+
+        function buildGrid(containerId, options, baseClass, callback) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = baseClass;
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    btn.blur();
+                    callback(opt);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function buildFragmentGrid() {
+            const container = document.getElementById('grid-fragments');
+            container.innerHTML = "";
+            const frags = [...currentCompound.frags].sort(() => Math.random() - 0.5);
+            frags.forEach(frag => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-frag';
+                btn.innerText = frag;
+                btn.onclick = () => {
+                    btn.blur();
+                    appendFragment(frag);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function showStep(stepElement) {
+            stepParent.style.display = 'none';
+            stepFunc.style.display = 'none';
+            stepSub.style.display = 'none';
+            stepBuild.style.display = 'none';
+            stepElement.style.display = 'flex';
+        }
+
+        function showFeedback(msg, color) {
+            elFeedback.innerText = msg;
+            elFeedback.style.color = color;
+            elFeedback.style.textShadow = `0 0 8px ${color}`;
+        }
+
+        function updateScore(points) {
+            score += points;
+            if (score < 0) score = 0;
+            elScore.innerText = score;
+        }
+
+        function updateTimerDisplay() {
+            elTimer.innerText = timeRemaining;
+            if (timeRemaining <= 10) {
+                elTimer.style.color = "var(--neon-red)";
+            } else {
+                elTimer.style.color = "var(--neon-magenta)";
+            }
+        }
+
+        function checkParent(guess) {
+            if (guess === currentCompound.parent) {
+                showFeedback("Correct Parent Chain!", "var(--neon-green)");
+                updateScore(10);
+                setTimeout(() => showStep(stepFunc), 500);
+            } else {
+                showFeedback("Incorrect Parent Chain. Try again.", "var(--neon-red)");
+                updateScore(-5);
+            }
+        }
+
+        function checkFunc(guess) {
+            if (guess === currentCompound.func) {
+                showFeedback("Correct Functional Group!", "var(--neon-green)");
+                updateScore(10);
+                setTimeout(() => showStep(stepSub), 500);
+            } else {
+                showFeedback("Incorrect Functional Group. Try again.", "var(--neon-red)");
+                updateScore(-5);
+            }
+        }
+
+        function checkSub(guess) {
+            if (guess === currentCompound.subs) {
+                showFeedback("Correct Substituent Profile!", "var(--neon-green)");
+                updateScore(10);
+                setTimeout(() => {
+                    buildFragmentGrid();
+                    showStep(stepBuild);
+                }, 500);
+            } else {
+                showFeedback("Incorrect Substituent. Try again.", "var(--neon-red)");
+                updateScore(-5);
+            }
+        }
+
+        function appendFragment(frag) {
+            builtNameStr += frag;
+            elBuiltName.innerText = builtNameStr;
+        }
+
+        function backspaceName() {
+            if (builtNameStr.length > 0) {
+                builtNameStr = builtNameStr.slice(0, -1);
+                elBuiltName.innerText = builtNameStr;
+            }
+        }
+
+        function clearName() {
+            builtNameStr = "";
+            elBuiltName.innerText = "";
+        }
+
+        function submitBuiltName() {
+            if (builtNameStr === currentCompound.name) {
+                clearInterval(timerInterval);
+                let timeBonus = timeRemaining * 2;
+                showFeedback(`Perfect! Sequence Verified. (+${50 + timeBonus} pts)`, "var(--neon-green)");
+                updateScore(50 + timeBonus);
+                
+                setTimeout(() => {
+                    loadNextMolecule();
+                }, 1500);
+            } else {
+                showFeedback("Incorrect Nomenclature Structure.", "var(--neon-red)");
+                updateScore(-10);
+                clearName();
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('screen-game').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            document.getElementById('final-score').innerText = score;
+        }
+
+    </script>
+</body>
+</html>
